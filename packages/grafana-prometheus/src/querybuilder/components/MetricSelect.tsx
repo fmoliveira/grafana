@@ -1,5 +1,5 @@
 // Core Grafana history https://github.com/grafana/grafana/blob/v11.0.0-preview/public/app/plugins/datasource/prometheus/querybuilder/components/MetricSelect.tsx
-import { css } from '@emotion/css';
+import { css, cx } from '@emotion/css';
 import debounce from 'debounce-promise';
 import { RefCallback, useCallback, useState } from 'react';
 import * as React from 'react';
@@ -10,7 +10,7 @@ import { selectors } from '@grafana/e2e-selectors';
 import { EditorField, EditorFieldGroup } from '@grafana/experimental';
 import {
   AsyncSelect,
-  Button,
+  ComponentSize,
   FormatOptionLabelMeta,
   getSelectStyles,
   Icon,
@@ -21,6 +21,7 @@ import {
   useStyles2,
   useTheme2,
 } from '@grafana/ui';
+import { getPropertiesForButtonSize } from '@grafana/ui/src/components/Forms/commonStyles';
 
 import { PrometheusDatasource } from '../../datasource';
 import { truncateResult } from '../../language_utils';
@@ -160,6 +161,42 @@ export function MetricSelect({
     datasource.getDebounceTimeInMilliseconds()
   );
 
+  const getDecorativeButtonStyles = (size: ComponentSize) => {
+    const theme = useTheme2();
+    const { height, padding, fontSize } = getPropertiesForButtonSize(size, theme);
+    const paddingMinusBorder = theme.spacing.gridSize * padding - 1;
+
+    return {
+      // WIP - developer note: identify the minimum styles neccessary to replicate the exact positioning of the current button.
+
+      // TODO: if extracting this into the ui library, might as well add support for the other basic button styles already
+      // just in case or at least leave a documentation note for future folks that may need it.
+      button: css({
+        fontSize: fontSize,
+        padding: `0 ${paddingMinusBorder}px`,
+        height: theme.spacing(height),
+      })
+    }
+  }
+
+  interface DecorativeButtonProps {
+    className: string;
+    children: React.ReactNode;
+    size: ComponentSize;
+  }
+
+  // WIP - developer note: consider colocating the decorative button code along with the base select components or even with the base buttons.
+  // TODO: need discussion with the ui team to present this proposal and gather feedback.
+  const OptionDecorativeButton = ({ className, children, size }: DecorativeButtonProps) => {
+    const styles = getDecorativeButtonStyles(size);
+
+    return (
+      <div className={cx(styles.button, className)}>
+        {children}
+      </div>
+    )
+  }
+
   // No type found for the common select props so typing as any
   // https://github.com/grafana/grafana/blob/main/packages/grafana-ui/src/components/Select/SelectBase.tsx/#L212-L263
   // eslint-disable-next-line
@@ -170,8 +207,11 @@ export function MetricSelect({
       const isFocused = props.isFocused ? styles.focus : '';
 
       return (
-        // TODO: fix keyboard a11y
-        // eslint-disable-next-line jsx-a11y/no-static-element-interactions
+        // WIP - developer note: the a11y issue reported by the lint check is a false positive, and this element already has role=button applied to it.
+        // the role is likely assigned either by the AsyncMultiSelect or SelectBase, will dig a bit more to learn and understand that well.
+
+        // TODO: we should still at the very minimum replicate the incoming aria-role to appease the linter and make it crystal clear
+        // that this is setting up the correct aria role as designed.
         <div
           {...props.innerProps}
           ref={props.innerRef}
@@ -190,16 +230,13 @@ export function MetricSelect({
                 <div className="metric-encyclopedia-open">{option.label}</div>
                 <div className={`${styles.customOptionDesc} metric-encyclopedia-open`}>{option.description}</div>
               </div>
-              <Button
-                fill="text"
-                size="sm"
-                variant="secondary"
-                onClick={() => setState({ ...state, metricsModalOpen: true })}
-                className="metric-encyclopedia-open"
-              >
+              { /* WIP - developer note: the button causes a secondary a11y issue with nested interactive controls, instead
+                 * we should consider making the button purely decorative and yield the open behavior to the parent option control.
+                 */ }
+              <OptionDecorativeButton size="sm" className="metric-encyclopedia-open">
                 Open
                 <Icon name="arrow-right" />
-              </Button>
+                </OptionDecorativeButton>
             </div>
           }
         </div>
