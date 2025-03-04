@@ -16,6 +16,7 @@ import {
   Icon,
   InlineField,
   InlineFieldRow,
+  LinkButton,
   ScrollContainer,
   SelectMenuOptions,
   useStyles2,
@@ -233,10 +234,10 @@ export function MetricSelect({
               { /* WIP - developer note: the button causes a secondary a11y issue with nested interactive controls, instead
                  * we should consider making the button purely decorative and yield the open behavior to the parent option control.
                  */ }
-              <OptionDecorativeButton size="sm" className="metric-encyclopedia-open">
+              <LinkButton size="sm" className="metric-encyclopedia-open">
                 Open
                 <Icon name="arrow-right" />
-                </OptionDecorativeButton>
+              </LinkButton>
             </div>
           }
         </div>
